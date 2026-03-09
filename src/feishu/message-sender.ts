@@ -169,7 +169,9 @@ export class MessageSender {
       const resp: any = await this.client.im.v1.chat.get({
         path: { chat_id: chatId },
       });
-      return resp?.data?.member_count;
+      const userCount = parseInt(resp?.data?.user_count, 10) || 0;
+      const botCount = parseInt(resp?.data?.bot_count, 10) || 0;
+      return userCount + botCount;
     } catch (err) {
       this.logger.error({ err, chatId }, 'Failed to get chat member count');
       return undefined;
