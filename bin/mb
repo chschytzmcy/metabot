@@ -132,10 +132,10 @@ print(json.dumps({'botName': sys.argv[1], 'chatId': sys.argv[2], 'cronExpr': sys
     git -C "$METABOT_SRC" pull --ff-only || { echo "Error: git pull failed (try resolving conflicts manually)"; exit 1; }
 
     echo "==> Installing dependencies..."
-    (cd "$METABOT_SRC" && npm install --no-audit --no-fund 2>&1 | tail -1)
+    (cd "$METABOT_SRC" && npm install --include=dev --no-audit --no-fund 2>&1 | tail -1)
 
     echo "==> Building..."
-    (cd "$METABOT_SRC" && npm run build 2>&1 | tail -1)
+    (cd "$METABOT_SRC" && npm run build 2>&1) || { echo "Error: build failed"; exit 1; }
 
     echo "==> Updating CLI tools..."
     mkdir -p "$LOCAL_BIN"
