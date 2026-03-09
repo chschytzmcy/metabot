@@ -170,6 +170,8 @@ npm run dev
 | `WIKI_AUTO_SYNC` | true | MetaMemory 变更时自动同步（带防抖） |
 | `WIKI_AUTO_SYNC_DEBOUNCE_MS` | 5000 | 自动同步防抖延迟 |
 | `CLAUDE_EXECUTABLE_PATH` | 自动检测 | `claude` 二进制路径（未设置时通过 `which` 解析） |
+| `METABOT_URL` | `http://localhost:9100` | MetaBot API 地址（CLI 远程访问） |
+| `MEMORY_SERVER_URL` | `http://localhost:8100` | MetaMemory 服务地址（CLI 远程访问） |
 | `WEBHOOK_URLS` | — | 逗号分隔的 Webhook URL，任务完成后发通知 |
 | `LOG_LEVEL` | info | 日志级别 |
 
@@ -280,6 +282,19 @@ mb stats                            # 费用和使用统计
 mb health                           # 状态检查
 mb update                           # 一键更新：拉取 + 构建 + 重启
 ```
+
+### 远程访问
+
+CLI 工具（`mb`、`mm`）支持连接远程 MetaBot/MetaMemory 服务器。在本地 `.env` 文件中配置 URL：
+
+```bash
+# 在 ~/.metabot/.env 或 ~/metabot/.env 中
+METABOT_URL=http://your-server:9100      # mb 命令连接的服务器
+MEMORY_SERVER_URL=http://your-server:8100 # mm 命令连接的服务器
+API_SECRET=your-secret                    # 共享认证 Token
+```
+
+这样多台机器可以共享同一个 MetaBot 和 MetaMemory 实例 —— 本地 Bot 可以向远程 Agent Bus 委派任务，任何机器都能读写共享记忆。
 
 ## 开发
 

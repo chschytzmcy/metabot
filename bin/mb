@@ -9,8 +9,9 @@ METABOT_ENV="${METABOT_HOME:-$HOME/metabot}/.env"
 if [[ -f "$METABOT_ENV" ]]; then
   _port=$(grep -oP '^API_PORT=\K.*' "$METABOT_ENV" 2>/dev/null || true)
   _secret=$(grep -oP '^API_SECRET=\K.*' "$METABOT_ENV" 2>/dev/null || true)
+  _url=$(grep -oP '^METABOT_URL=\K.*' "$METABOT_ENV" 2>/dev/null || true)
 fi
-METABOT_URL="${METABOT_URL:-http://localhost:${_port:-9100}}"
+METABOT_URL="${METABOT_URL:-${_url:-http://localhost:${_port:-9100}}}"
 _secret="${_secret:-${API_SECRET:-changeme}}"
 METABOT_AUTH="Authorization: Bearer $_secret"
 

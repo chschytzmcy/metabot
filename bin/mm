@@ -21,8 +21,10 @@ if [[ -n "$METABOT_ENV" && -f "$METABOT_ENV" ]]; then
   _reader_token=$(grep -oP '^MEMORY_TOKEN=\K.*' "$METABOT_ENV" 2>/dev/null || true)
   _memory_secret=$(grep -oP '^MEMORY_SECRET=\K.*' "$METABOT_ENV" 2>/dev/null || true)
   _secret=$(grep -oP '^API_SECRET=\K.*' "$METABOT_ENV" 2>/dev/null || true)
+  _memory_url=$(grep -oP '^MEMORY_SERVER_URL=\K.*' "$METABOT_ENV" 2>/dev/null || true)
+  [[ -z "$_memory_url" ]] && _memory_url=$(grep -oP '^MEMORY_URL=\K.*' "$METABOT_ENV" 2>/dev/null || true)
 fi
-MEMORY_URL="${MEMORY_URL:-http://localhost:8100}"
+MEMORY_URL="${MEMORY_URL:-${_memory_url:-http://localhost:8100}}"
 
 # Token priority: MEMORY_ADMIN_TOKEN > MEMORY_TOKEN > MEMORY_SECRET > API_SECRET
 # Always resolve from .env; ignore pre-set MEMORY_AUTH (may be stale/wrong token)
