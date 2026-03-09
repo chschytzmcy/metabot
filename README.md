@@ -278,6 +278,7 @@ mb schedule pause <id>              # pause recurring task
 mb schedule resume <id>             # resume recurring task
 mb stats                            # cost & usage stats
 mb health                           # status check
+mb update                           # pull + rebuild + restart (one command)
 ```
 
 ## Development

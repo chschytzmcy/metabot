@@ -278,6 +278,7 @@ mb schedule pause <id>              # 暂停周期性任务
 mb schedule resume <id>             # 恢复周期性任务
 mb stats                            # 费用和使用统计
 mb health                           # 状态检查
+mb update                           # 一键更新：拉取 + 构建 + 重启
 ```
 
 ## 开发
