@@ -41,7 +41,7 @@ case "$cmd" in
     fi
     python3 -c "
 import json, sys
-print(json.dumps({'botName': sys.argv[1], 'chatId': sys.argv[2], 'prompt': sys.argv[3], 'sendCards': False}))
+print(json.dumps({'botName': sys.argv[1], 'chatId': sys.argv[2], 'prompt': sys.argv[3], 'sendCards': True}))
 " "$bot" "$chat" "$prompt" | \
     curl -s -X POST "$METABOT_URL/api/tasks" \
       -H "$METABOT_AUTH" -H "Content-Type: application/json" \

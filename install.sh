@@ -729,7 +729,7 @@ mb() {
       fi
       curl -s -X POST "$METABOT_URL/api/tasks" \
         -H "$METABOT_AUTH" -H "Content-Type: application/json" \
-        -d "{\"botName\":\"$bot\",\"chatId\":\"$chat\",\"prompt\":\"$prompt\",\"sendCards\":false}"
+        -d "{\"botName\":\"$bot\",\"chatId\":\"$chat\",\"prompt\":\"$prompt\",\"sendCards\":true}"
       ;;
     # --- Scheduling ---
     schedule|sched|sc)

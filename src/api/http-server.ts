@@ -128,7 +128,7 @@ export function startApiServer(options: ApiServerOptions): http.Server {
           prompt,
           chatId,
           userId: 'api',
-          sendCards: sendCards ?? false,
+          sendCards: sendCards ?? true,
         });
 
         jsonResponse(res, result.success ? 200 : 500, result);
