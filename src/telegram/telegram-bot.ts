@@ -257,7 +257,6 @@ export async function startTelegramBot(
 
   botLogger.info({
     defaultWorkingDirectory: config.claude.defaultWorkingDirectory,
-    allowedTools: config.claude.allowedTools,
     maxTurns: config.claude.maxTurns ?? 'unlimited',
     maxBudgetUsd: config.claude.maxBudgetUsd ?? 'unlimited',
   }, 'Configuration');

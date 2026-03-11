@@ -76,7 +76,6 @@ async function startFeishuBot(botConfig: BotConfig, logger: Logger, memoryServer
   botLogger.info('Feishu bot is running');
   botLogger.info({
     defaultWorkingDirectory: botConfig.claude.defaultWorkingDirectory,
-    allowedTools: botConfig.claude.allowedTools,
     maxTurns: botConfig.claude.maxTurns ?? 'unlimited',
     maxBudgetUsd: botConfig.claude.maxBudgetUsd ?? 'unlimited',
   }, 'Configuration');
