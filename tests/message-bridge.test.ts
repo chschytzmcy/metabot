@@ -14,7 +14,7 @@ describe('isStaleSessionError', () => {
   });
 
   it('does not match unrelated errors', () => {
-    expect(isStaleSessionError('Task timed out (1 hour limit)')).toBe(false);
+    expect(isStaleSessionError('Task timed out (24 hour limit)')).toBe(false);
     expect(isStaleSessionError('permission denied')).toBe(false);
     expect(isStaleSessionError(undefined)).toBe(false);
   });

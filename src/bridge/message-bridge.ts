@@ -24,6 +24,8 @@ const MAX_QUEUE_SIZE = 5; // max queued messages per chat
 const IDLE_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour idle → abort
 const FINAL_CARD_RETRIES = 3;
 const FINAL_CARD_BASE_DELAY_MS = 2000;
+const TASK_TIMEOUT_MESSAGE = 'Task timed out (24 hour limit)';
+const IDLE_TIMEOUT_MESSAGE = 'Task aborted: no activity for 1 hour';
 
 interface RunningTask {
   abortController: AbortController;
@@ -324,7 +326,7 @@ export class MessageBridge {
     const resetIdleTimer = () => {
       if (idleTimerId) clearTimeout(idleTimerId);
       idleTimerId = setTimeout(() => {
-        this.logger.warn({ chatId, userId }, 'Task idle timeout (5min no stream), aborting');
+        this.logger.warn({ chatId, userId }, 'Task idle timeout (1h no stream), aborting');
         idledOut = true;
         executionHandle.finish();
         abortController.abort();
@@ -407,9 +409,9 @@ export class MessageBridge {
       // Force terminal state if stream ended without one
       if (lastState.status !== 'complete' && lastState.status !== 'error') {
         if (timedOut) {
-          lastState = { ...lastState, status: 'error', errorMessage: 'Task timed out (1 hour limit)' };
+          lastState = { ...lastState, status: 'error', errorMessage: TASK_TIMEOUT_MESSAGE };
         } else if (idledOut) {
-          lastState = { ...lastState, status: 'error', errorMessage: 'Task aborted: no activity for 5 minutes' };
+          lastState = { ...lastState, status: 'error', errorMessage: IDLE_TIMEOUT_MESSAGE };
         } else if (abortController.signal.aborted) {
           lastState = { ...lastState, status: 'error', errorMessage: 'Task was stopped' };
         } else {
@@ -565,7 +567,7 @@ export class MessageBridge {
     const resetIdleTimer = () => {
       if (idleTimerId) clearTimeout(idleTimerId);
       idleTimerId = setTimeout(() => {
-        this.logger.warn({ chatId, userId }, 'API task idle timeout (5min no stream), aborting');
+        this.logger.warn({ chatId, userId }, 'API task idle timeout (1h no stream), aborting');
         idledOut = true;
         executionHandle.finish();
         abortController.abort();
@@ -631,9 +633,9 @@ export class MessageBridge {
 
       if (lastState.status !== 'complete' && lastState.status !== 'error') {
         if (timedOut) {
-          lastState = { ...lastState, status: 'error', errorMessage: 'Task timed out (1 hour limit)' };
+          lastState = { ...lastState, status: 'error', errorMessage: TASK_TIMEOUT_MESSAGE };
         } else if (idledOut) {
-          lastState = { ...lastState, status: 'error', errorMessage: 'Task aborted: no activity for 5 minutes' };
+          lastState = { ...lastState, status: 'error', errorMessage: IDLE_TIMEOUT_MESSAGE };
         } else if (abortController.signal.aborted) {
           lastState = { ...lastState, status: 'error', errorMessage: 'Task was stopped' };
         } else {
