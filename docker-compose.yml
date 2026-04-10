@@ -1,26 +1,21 @@
-version: "3.8"
-
 services:
   metabot:
     build: .
     restart: unless-stopped
     ports:
-      - "${API_PORT:-9100}:9100"
+      - '${API_PORT:-9100}:9100'
     env_file: .env
     environment:
       - META_MEMORY_URL=http://localhost:8100
       - MEMORY_ENABLED=true
       - MEMORY_PORT=8100
       - MEMORY_DATABASE_DIR=/app/data
+      - CLAUDE_EXECUTABLE_PATH=/home/etsme/.local/bin/claude
     volumes:
-      # Persist MetaMemory database
       - metabot-data:/app/data
-      # Persist Claude auth (run `claude login` inside container first)
-      - claude-config:/root/.claude
-      # Mount working directory for Claude to operate on
-      - ${CLAUDE_DEFAULT_WORKING_DIRECTORY:-.}:/workspace
+      # Mount host user home — provides claude binary, auth, and working directories
+      - /home/etsme:/home/etsme
     working_dir: /app
 
 volumes:
   metabot-data:
-  claude-config:

@@ -26,11 +26,18 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Install runtime deps for better-sqlite3 and Claude CLI
-RUN apt-get update && apt-get install -y python3 make g++ git curl && rm -rf /var/lib/apt/lists/*
+# Install runtime deps for better-sqlite3
+RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
 
-# Install Claude Code CLI
-RUN npm install -g @anthropic-ai/claude-code
+# Reuse the existing node user (uid=1000) to match host etsme (uid=1000)
+# Rename home directory and user so bind-mounted /home/etsme works
+RUN usermod -l etsme -d /home/etsme -m node && groupmod -n etsme node
+
+# Claude CLI is mounted from host (see docker-compose.yml)
+# /home/etsme/ is bind-mounted, providing:
+#   - ~/.local/bin/claude (binary)
+#   - ~/.claude/ (auth credentials)
+#   - ~/.local/share/claude/ (versions)
 
 # Install production dependencies (rebuilds native modules for this stage)
 COPY package.json package-lock.json ./
@@ -43,9 +50,14 @@ COPY --from=builder /app/dist ./dist
 COPY bin/ ./bin/
 COPY .env.example ./
 
-# Default environment
+# Ensure app dir and data dir are writable by etsme
+RUN mkdir -p /app/data && chown -R etsme:etsme /app
+
+USER etsme
 ENV NODE_ENV=production
 ENV API_PORT=9100
+ENV HOME=/home/etsme
+ENV PATH="/home/etsme/.local/bin:${PATH}"
 
 EXPOSE 9100
 
