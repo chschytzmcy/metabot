@@ -64,19 +64,16 @@ function createSpawnFn(explicitApiKey?: string): (options: SpawnOptions) => Spaw
   const filterAuthVars = !!(explicitApiKey || hasCredentialsFile());
 
   return (options: SpawnOptions): SpawnedProcess => {
-    const nodePath = process.execPath;
-
     // Merge provided env with process.env for a complete environment
-    const baseEnv = options.env && Object.keys(options.env).length > 0
-      ? { ...process.env, ...options.env }
-      : { ...process.env };
+    const baseEnv =
+      options.env && Object.keys(options.env).length > 0 ? { ...process.env, ...options.env } : { ...process.env };
 
     // Filter out env vars that interfere with auth or cause nested session errors
     const env: Record<string, string> = {};
     for (const [key, value] of Object.entries(baseEnv)) {
       if (value === undefined) continue;
-      if (ALWAYS_FILTERED_PREFIXES.some(p => key.startsWith(p))) continue;
-      if (filterAuthVars && AUTH_ENV_VARS.some(v => key.startsWith(v))) continue;
+      if (ALWAYS_FILTERED_PREFIXES.some((p) => key.startsWith(p))) continue;
+      if (filterAuthVars && AUTH_ENV_VARS.some((v) => key.startsWith(v))) continue;
       env[key] = value;
     }
 
@@ -85,7 +82,7 @@ function createSpawnFn(explicitApiKey?: string): (options: SpawnOptions) => Spaw
       env.ANTHROPIC_API_KEY = explicitApiKey;
     }
 
-    const child = spawn(nodePath, options.args, {
+    const child = spawn(options.command, options.args, {
       cwd: options.cwd,
       env,
       signal: options.signal,
@@ -174,7 +171,13 @@ export class ClaudeExecutor {
     private logger: Logger,
   ) {}
 
-  private buildQueryOptions(cwd: string, sessionId: string | undefined, abortController: AbortController, outputsDir?: string, apiContext?: ApiContext): Record<string, unknown> {
+  private buildQueryOptions(
+    cwd: string,
+    sessionId: string | undefined,
+    abortController: AbortController,
+    outputsDir?: string,
+    apiContext?: ApiContext,
+  ): Record<string, unknown> {
     const queryOptions: Record<string, unknown> = {
       permissionMode: 'bypassPermissions' as const,
       allowDangerouslySkipPermissions: true,
@@ -187,7 +190,9 @@ export class ClaudeExecutor {
       // process.execPath to avoid PATH issues on Windows; fileURLToPath converts
       // file:// URLs to native paths for the SDK CLI entrypoint.
       spawnClaudeCodeProcess: createSpawnFn(this.config.claude.apiKey),
-      executableArgs: [path.join(path.dirname(fileURLToPath(import.meta.resolve('@anthropic-ai/claude-agent-sdk'))), 'cli.js')],
+      executableArgs: [
+        path.join(path.dirname(fileURLToPath(import.meta.resolve('@anthropic-ai/claude-agent-sdk'))), 'cli.js'),
+      ],
       pathToClaudeCodeExecutable: CLAUDE_EXECUTABLE,
     };
 
@@ -195,7 +200,9 @@ export class ClaudeExecutor {
     const appendSections: string[] = [];
 
     if (outputsDir) {
-      appendSections.push(`## Output Files\nWhen producing output files for the user (images, PDFs, documents, archives, code files, etc.), copy them to: ${outputsDir}\nUse \`cp\` via the Bash tool. The bridge will automatically send files placed there to the user.`);
+      appendSections.push(
+        `## Output Files\nWhen producing output files for the user (images, PDFs, documents, archives, code files, etc.), copy them to: ${outputsDir}\nUse \`cp\` via the Bash tool. The bridge will automatically send files placed there to the user.`,
+      );
     }
 
     if (apiContext) {
@@ -203,7 +210,7 @@ export class ClaudeExecutor {
       // race conditions when multiple chats run concurrently.
       // Port and secret are already set as METABOT_* env vars in config.ts.
       appendSections.push(
-        `## MetaBot API\nYou are running as bot "${apiContext.botName}" in chat "${apiContext.chatId}".\nUse the /metabot skill for full API documentation (agent bus, scheduling, bot management).`
+        `## MetaBot API\nYou are running as bot "${apiContext.botName}" in chat "${apiContext.chatId}".\nUse the /metabot skill for full API documentation (agent bus, scheduling, bot management).`,
       );
 
       // Group chat — tell the bot who else is in the group and how to talk to them
@@ -212,11 +219,11 @@ export class ClaudeExecutor {
         const groupId = apiContext.groupId;
         if (groupId) {
           appendSections.push(
-            `## Group Chat\nYou are in a group chat (group: ${groupId}) with these bots: ${others.join(', ')}.\nTo talk to another bot, use: \`mb talk <botName> grouptalk-${groupId}-<botName> "message"\`\nExample: \`mb talk ${others[0]} grouptalk-${groupId}-${others[0]} "hello"\`\nIMPORTANT: Always use the grouptalk-${groupId}-<botName> chatId pattern when talking to other bots in this group.`
+            `## Group Chat\nYou are in a group chat (group: ${groupId}) with these bots: ${others.join(', ')}.\nTo talk to another bot, use: \`mb talk <botName> grouptalk-${groupId}-<botName> "message"\`\nExample: \`mb talk ${others[0]} grouptalk-${groupId}-${others[0]} "hello"\`\nIMPORTANT: Always use the grouptalk-${groupId}-<botName> chatId pattern when talking to other bots in this group.`,
           );
         } else {
           appendSections.push(
-            `## Group Chat\nYou are in a group chat with these bots: ${others.join(', ')}.\nUse \`mb talk <botName> <chatId> "message"\` to communicate with other bots in the group.`
+            `## Group Chat\nYou are in a group chat with these bots: ${others.join(', ')}.\nUse \`mb talk <botName> <chatId> "message"\` to communicate with other bots in the group.`,
           );
         }
       }
@@ -253,7 +260,17 @@ export class ClaudeExecutor {
   }
 
   startExecution(options: ExecutorOptions): ExecutionHandle {
-    const { prompt, cwd, sessionId, abortController, outputsDir, apiContext } = options;
+    const { prompt, sessionId, abortController, outputsDir, apiContext } = options;
+
+    let cwd = options.cwd;
+    try {
+      if (!fs.existsSync(cwd)) {
+        this.logger.warn({ cwd }, 'Working directory does not exist, falling back to home');
+        cwd = os.homedir();
+      }
+    } catch {
+      cwd = os.homedir();
+    }
 
     this.logger.info({ cwd, hasSession: !!sessionId, outputsDir }, 'Starting Claude execution (multi-turn)');
 
@@ -296,19 +313,20 @@ export class ClaudeExecutor {
           reject(new DOMException('Aborted', 'AbortError'));
           return;
         }
-        abortController.signal.addEventListener('abort', () => {
-          reject(new DOMException('Aborted', 'AbortError'));
-        }, { once: true });
+        abortController.signal.addEventListener(
+          'abort',
+          () => {
+            reject(new DOMException('Aborted', 'AbortError'));
+          },
+          { once: true },
+        );
       });
 
       const iterator = stream[Symbol.asyncIterator]();
 
       try {
         while (true) {
-          const result = await Promise.race([
-            iterator.next(),
-            abortPromise,
-          ]);
+          const result = await Promise.race([iterator.next(), abortPromise]);
           if (result.done) break;
           yield result.value as SDKMessage;
         }
@@ -316,7 +334,11 @@ export class ClaudeExecutor {
         if (err.name === 'AbortError' || abortController.signal.aborted) {
           logger.info('Claude execution aborted');
           // Clean up the underlying iterator (non-blocking)
-          try { iterator.return?.(undefined); } catch { /* ignore */ }
+          try {
+            iterator.return?.(undefined);
+          } catch {
+            /* ignore */
+          }
           return;
         }
         throw err;
@@ -367,26 +389,31 @@ export class ClaudeExecutor {
         reject(new DOMException('Aborted', 'AbortError'));
         return;
       }
-      abortController.signal.addEventListener('abort', () => {
-        reject(new DOMException('Aborted', 'AbortError'));
-      }, { once: true });
+      abortController.signal.addEventListener(
+        'abort',
+        () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        },
+        { once: true },
+      );
     });
 
     const iterator = stream[Symbol.asyncIterator]();
 
     try {
       while (true) {
-        const result = await Promise.race([
-          iterator.next(),
-          abortPromise,
-        ]);
+        const result = await Promise.race([iterator.next(), abortPromise]);
         if (result.done) break;
         yield result.value as SDKMessage;
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || abortController.signal.aborted) {
         this.logger.info('Claude execution aborted');
-        try { iterator.return?.(undefined); } catch { /* ignore */ }
+        try {
+          iterator.return?.(undefined);
+        } catch {
+          /* ignore */
+        }
         return;
       }
       throw err;
