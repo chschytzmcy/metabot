@@ -13,6 +13,8 @@ services:
       - CLAUDE_EXECUTABLE_PATH=/home/etsme/.local/bin/claude
     volumes:
       - metabot-data:/app/data
+      # Mount config files (excluded from image for security)
+      - ./bots.json:/app/bots.json:ro
       # Mount host user home — provides claude binary, auth, and working directories
       - /home/etsme:/home/etsme
     working_dir: /app

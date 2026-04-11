@@ -27,7 +27,12 @@ FROM node:20-slim
 WORKDIR /app
 
 # Install runtime deps for better-sqlite3
-RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3 make g++ git wget && rm -rf /var/lib/apt/lists/*
+
+# Install Go 1.25.0
+RUN wget -qL -O /tmp/go.tar.gz https://go.dev/dl/go1.25.0.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf /tmp/go.tar.gz \
+    && rm /tmp/go.tar.gz
 
 # Reuse the existing node user (uid=1000) to match host etsme (uid=1000)
 # Rename home directory and user so bind-mounted /home/etsme works
@@ -57,7 +62,7 @@ USER etsme
 ENV NODE_ENV=production
 ENV API_PORT=9100
 ENV HOME=/home/etsme
-ENV PATH="/home/etsme/.local/bin:${PATH}"
+ENV PATH="/usr/local/go/bin:/home/etsme/.local/bin:${PATH}"
 
 EXPOSE 9100
 
